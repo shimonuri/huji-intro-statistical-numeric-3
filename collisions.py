@@ -65,7 +65,13 @@ def find_dtcoll(ball_1, ball_2):
 
 
 def make_wall_collision(ball):
-    return 0.0, 0.0
+    wall, dtwall = _find_wall_and_dt_wall(ball)
+    x, y = wall
+
+    if x in [0, 1]:
+        ball.vx = - ball.vx
+    else:
+        ball.vy = - ball.vy
 
 
 def make_balls_collision(ball_1, ball_2):
