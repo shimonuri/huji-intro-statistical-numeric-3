@@ -16,6 +16,9 @@ def main(radius, size, dtstore, steps):
     main_model = model.Model(get_balls(radius), size=size, dtstore=dtstore)
     main_model.run(steps=steps)
     logging.basicConfig(level=logging.INFO)
+    plot_location_heatmap(main_model.data)
+
+def plot_locations(main_model):
     plt.plot(main_model.data.get_x(0), main_model.data.get_y(0), label="ball1")
     plt.plot(main_model.data.get_x(1), main_model.data.get_y(1), label="ball2")
     plt.plot(main_model.data.get_x(2), main_model.data.get_y(2), label="ball3")
@@ -24,11 +27,12 @@ def main(radius, size, dtstore, steps):
     plt.show()
 
 
-# def plot_location_heatmap(model_data):
-#     plt.scatter(model_data.get_x(0), model_data.get_y(0))
-#     plt.show()
-#     plt.imshow(, cmap="hot", interpolation="nearest")
+def plot_location_heatmap(model_data):
+    plt.imshow(model_data.get_heatmap(2), cmap="hot", interpolation="nearest")
+
+    plt.colorbar()
+    plt.show()
 
 
 if __name__ == "__main__":
-    main(radius=0.1, size=1.0, dtstore=0.01, steps=1000)
+    main(radius=0.05, size=1.0, dtstore=0.01, steps=10000)

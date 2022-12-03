@@ -1,11 +1,15 @@
 import dataclasses
 import itertools
+
+import numpy as np
+
 import collisions
 import logging
 from typing import List
 import copy
 
 logging.basicConfig(level=logging.DEBUG)
+CELL_SIZE = 0.1
 
 
 @dataclasses.dataclass
@@ -20,6 +24,10 @@ class Ball:
     def move(self, dt):
         self.x += self.vx * dt
         self.y += self.vy * dt
+
+    @property
+    def cell(self):
+        return (int(self.x // CELL_SIZE), int(self.y // CELL_SIZE))
 
     @property
     def vabs(self):
@@ -72,6 +80,12 @@ class ModelData:
 
     def get_y(self, ball_number):
         return [state.balls[ball_number].y for state in self.model_states]
+
+    def get_heatmap(self, ball_number):
+        heatmap = np.zeros((int(1 / CELL_SIZE), int(1 / CELL_SIZE)))
+        for state in self.model_states:
+            heatmap[state.balls[ball_number].cell] += 1
+        return heatmap
 
     def get_vabs(self, ball_number):
         return [state.balls[ball_number].vabs for state in self.model_states]
