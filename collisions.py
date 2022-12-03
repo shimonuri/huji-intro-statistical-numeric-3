@@ -1,8 +1,16 @@
 def find_dtwall(ball):
-    # Find the distance to the wall
-    # with the ultrasonic sensor
-    # and return the distance
-    return 0.0
+    x, y, vx, vy, r = ball.x, ball.y, ball.vx, ball.vy, ball.radius
+    if vx > 0:
+        dtwall_x = (1 - r - x) / vx
+    else:
+        dtwall_x = (x - r) / vx
+
+    if vy > 0:
+        dtwall_y = (1 - r - y) / vy
+    else:
+        dtwall_y = (y - r) / vy
+
+    return min(dtwall_x, dtwall_y)
 
 
 def find_dtcol(ball_1, ball_2):
