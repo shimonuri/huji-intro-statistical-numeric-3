@@ -45,8 +45,9 @@ class WallCollision:
 
 
 class Model:
-    def __init__(self, balls):
+    def __init__(self, balls, size):
         self.balls = balls
+        self.size = size
 
     def run(self, steps=100):
         while steps > 0:
@@ -95,7 +96,7 @@ def get_balls(radius=0.1):
 
 
 def main(radius):
-    model = Model(get_balls(radius))
+    model = Model(get_balls(radius), size=1.0)
     print(model)
 
 
