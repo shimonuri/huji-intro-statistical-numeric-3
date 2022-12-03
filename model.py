@@ -3,9 +3,7 @@ import itertools
 import collisions
 import logging
 from typing import List
-
-logging.basicConfig(level=logging.DEBUG)
-
+import copy
 
 @dataclasses.dataclass
 class Ball:
@@ -59,6 +57,9 @@ class ModelState:
 class ModelData:
     model_states: List[ModelState]
 
+    def add_state(self, state: ModelState):
+        self.model_states.append(state)
+
     @property
     def times(self):
         return [state.time for state in self.model_states]
@@ -84,13 +85,15 @@ class Model:
         self.balls = balls
         self.size = size
         self.dtstore = dtstore
+        self.time = 0
+        self.data = ModelData(model_states=[])
 
     def run(self, steps=100):
         step = 0
-        while step < steps:
+        while step <= steps:
             step += 1
-            collision = self.find_next_collision()
-            self.move(collision.dt)
+            collision = self._find_next_collision()
+            self._forward(collision.dt)
             if isinstance(collision, BallsCollision):
                 collisions.make_balls_collision(collision.ball_1, collision.ball_2)
             elif isinstance(collision, WallCollision):
@@ -99,14 +102,30 @@ class Model:
             if steps % 10 == 0:
                 logging.debug(f"step={steps}, {collision}")
 
-    def find_next_collision(self):
+        return self.data
+
+    def _forward(self, dt):
+        time_to_next_store = self.dtstore - self.time % self.dtstore
+        if dt >= time_to_next_store:
+            self._move(time_to_next_store)
+            self._store_state()
+            dt -= time_to_next_store
+
+        self._move(dt)
+
+    def _move(self, dt):
+        self.time += dt
+        for ball in self.balls:
+            ball.move(dt)
+
+    def _find_next_collision(self):
         collision_events = []
         for ball_1, ball_2 in itertools.combinations(self.balls, 2):
             collision_events.append(
                 BallsCollision(
                     ball_1=ball_1,
                     ball_2=ball_2,
-                    dt=collisions.find_dtcol(ball_1, ball_2),
+                    dt=collisions.find_dtcoll(ball_1, ball_2),
                 )
             )
         for ball in self.balls:
@@ -115,27 +134,9 @@ class Model:
             )
         return min(collision_events, key=lambda x: x.dt)
 
-    def move(self, dt):
-        for ball in self.balls:
-            ball.move(dt)
+    def _store_state(self):
+        logging.debug(f"store state at time={self.time}")
+        self.data.add_state(ModelState(balls=copy.deepcopy(self.balls), time=self.time))
 
     def __str__(self):
-        return f"Model(ball={self.ball})"
-
-
-def get_balls(radius=0.1):
-    return [
-        Ball(x=0.25, y=0.25, vx=1.0, vy=1.0, radius=radius, name="ball1"),
-        Ball(x=0.25, y=0.75, vx=-1.0, vy=-1.0, radius=radius, name="ball2"),
-        Ball(x=0.75, y=0.25, vx=-1.0, vy=1.0, radius=radius, name="ball3"),
-        Ball(x=0.75, y=0.75, vx=1.0, vy=-1.0, radius=radius, name="ball4"),
-    ]
-
-
-def main(radius):
-    model = Model(get_balls(radius), size=1.0)
-    print(model)
-
-
-if __name__ == "__main__":
-    main()
+        return f"Model(balls={self.balls}, size={self.size}, dtstore={self.dtstore})"
