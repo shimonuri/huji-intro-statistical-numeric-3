@@ -55,7 +55,7 @@ def make_balls_collision(ball_1, ball_2):
 
     delta_vx = ball_2.vx - ball_1.vx
     delta_vy = ball_2.vy - ball_1.vy
-    delta_v = np.array(delta_vx, delta_vy)
+    delta_v = np.array([delta_vx, delta_vy])
 
     e_x = delta_x / norm(delta_l)
     e_y = delta_y / norm(delta_l)
