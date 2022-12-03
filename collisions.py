@@ -9,14 +9,14 @@ def find_dtwall(ball):
     elif vx < 0:
         dtwall_x = (x - r) / abs(vx)
     else:
-        dtwall_x = 10 ** 10 # Practically infinity
+        dtwall_x = np.inf
 
     if vy > 0:
         dtwall_y = (1 - r - y) / vy
     elif vx < 0:
         dtwall_y = (y - r) / abs(vy)
     else:
-        dtwall_y = 10 ** 10 # Practically infinity
+        dtwall_y = np.inf
 
     return min(dtwall_x, dtwall_y)
 
@@ -39,7 +39,7 @@ def find_dtcoll(ball_1, ball_2):
     if det > 0 and s< 0:
         dtcoll = - (s + np.sqrt(det)) / (norm(delta_v) ** 2)
     else:
-        dtcoll = 10 ** 10 # Practically infinity
+        dtcoll = np.inf
 
     return dtcoll
 
