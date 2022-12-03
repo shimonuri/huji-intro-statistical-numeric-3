@@ -2,6 +2,7 @@ import dataclasses
 import itertools
 import collisions
 import logging
+from typing import List
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -18,6 +19,10 @@ class Ball:
     def move(self, dt):
         self.x += self.vx * dt
         self.y += self.vy * dt
+
+    @property
+    def vabs(self):
+        return (self.vx ** 2 + self.vy ** 2) ** 0.5
 
     def __str__(self):
         return f"Ball(x={self.x}, y={self.y}, vx={self.vx}, vy={self.vy}, radius={self.radius})"
@@ -44,21 +49,53 @@ class WallCollision:
         return f"WallCollision(ball={self.ball}, dt={self.dt})"
 
 
+@dataclasses.dataclass
+class ModelState:
+    balls: list
+    time: float
+
+
+@dataclasses.dataclass
+class ModelData:
+    model_states: List[ModelState]
+
+    @property
+    def times(self):
+        return [state.time for state in self.model_states]
+
+    def get_x(self, ball_number):
+        return [state.balls[ball_number].x for state in self.model_states]
+
+    def get_y(self, ball_number):
+        return [state.balls[ball_number].y for state in self.model_states]
+
+    def get_vabs(self, ball_number):
+        return [state.balls[ball_number].vabs for state in self.model_states]
+
+    def get_vx(self, ball_number):
+        return [state.balls[ball_number].vx for state in self.model_states]
+
+    def get_vy(self, ball_number):
+        return [state.balls[ball_number].vy for state in self.model_states]
+
+
 class Model:
-    def __init__(self, balls, size):
+    def __init__(self, balls, size, dtstore):
         self.balls = balls
         self.size = size
+        self.dtstore = dtstore
 
     def run(self, steps=100):
-        while steps > 0:
-            steps -= 1
+        step = 0
+        while step < steps:
+            step += 1
             collision = self.find_next_collision()
             self.move(collision.dt)
             if isinstance(collision, BallsCollision):
-                collisions.make_collision(collision.ball_1, collision.ball_2)
+                collisions.make_balls_collision(collision.ball_1, collision.ball_2)
             elif isinstance(collision, WallCollision):
                 collisions.make_wall_collision(collision.ball)
-            collisions.make_collision(collision.ball_1, collision.ball_2)
+
             if steps % 10 == 0:
                 logging.debug(f"step={steps}, {collision}")
 
