@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 
+
 def find_dtwall(ball):
     x, y, vx, vy, r = ball.x, ball.y, ball.vx, ball.vy, ball.radius
     if vx > 0:
@@ -46,5 +47,24 @@ def find_dtcoll(ball_1, ball_2):
 def make_wall_collision(ball):
     return 0.0, 0.0
 
+
 def make_balls_collision(ball_1, ball_2):
-    return 0.0, 0.0
+    delta_x = ball_2.x - ball_1.x
+    delta_y = ball_2.y - ball_1.y
+    delta_l = np.array([delta_x, delta_y])
+
+    delta_vx = ball_2.vx - ball_1.vx
+    delta_vy = ball_2.vy - ball_1.vy
+    delta_v = np.array(delta_vx, delta_vy)
+
+    e_x = delta_x / norm(delta_l)
+    e_y = delta_y / norm(delta_l)
+    e_vec = np.array([e_y, e_y])
+
+    s_v = np.dot(delta_v, e_vec)
+
+    # Modify velocities:
+    ball_1.vx = ball_1.vx + e_x * s_v
+    ball_1.vy = ball_1.vy + e_y * s_v
+    ball_2.vx = ball_2.vx - e_x * s_v
+    ball_2.vy = ball_2.vy - e_y * s_v
