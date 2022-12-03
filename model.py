@@ -5,6 +5,8 @@ import logging
 from typing import List
 import copy
 
+logging.basicConfig(level=logging.DEBUG)
+
 
 @dataclasses.dataclass
 class Ball:
@@ -100,8 +102,8 @@ class Model:
             elif isinstance(collision, WallCollision):
                 collisions.make_wall_collision(collision.ball)
 
-            if steps % 10 == 0:
-                logging.debug(f"step={steps}, {collision}")
+            if step % 1 == 0:
+                logging.debug(f"step={step}, {collision}")
 
         return self.data
 

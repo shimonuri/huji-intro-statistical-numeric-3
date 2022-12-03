@@ -12,11 +12,15 @@ def get_balls(radius=0.1):
     ]
 
 
-def main(radius, size, dtstore):
-    logging.basicConfig(level=logging.INFO)
+def main(radius, size, dtstore, steps):
     main_model = model.Model(get_balls(radius), size=size, dtstore=dtstore)
-    main_model.run()
-    plt.plot(main_model.data.times, main_model.data.get_x(0))
+    main_model.run(steps=steps)
+    logging.basicConfig(level=logging.INFO)
+    plt.plot(main_model.data.get_x(0), main_model.data.get_y(0), label="ball1")
+    plt.plot(main_model.data.get_x(1), main_model.data.get_y(1), label="ball2")
+    plt.plot(main_model.data.get_x(2), main_model.data.get_y(2), label="ball3")
+    plt.plot(main_model.data.get_x(3), main_model.data.get_y(3), label="ball4")
+    plt.legend()
     plt.show()
 
 
@@ -27,4 +31,4 @@ def main(radius, size, dtstore):
 
 
 if __name__ == "__main__":
-    main(radius=0.1, size=1.0, dtstore=0.01)
+    main(radius=0.1, size=1.0, dtstore=0.01, steps=1000)
