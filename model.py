@@ -5,6 +5,7 @@ import logging
 from typing import List
 import copy
 
+
 @dataclasses.dataclass
 class Ball:
     x: float

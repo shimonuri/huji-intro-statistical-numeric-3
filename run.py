@@ -2,6 +2,7 @@ import model
 from matplotlib import pyplot as plt
 import logging
 
+
 def get_balls(radius=0.1):
     return [
         model.Ball(x=0.25, y=0.25, vx=1.0, vy=1.0, radius=radius, name="ball1"),
@@ -17,6 +18,12 @@ def main(radius, size, dtstore):
     main_model.run()
     plt.plot(main_model.data.times, main_model.data.get_x(0))
     plt.show()
+
+
+# def plot_location_heatmap(model_data):
+#     plt.scatter(model_data.get_x(0), model_data.get_y(0))
+#     plt.show()
+#     plt.imshow(, cmap="hot", interpolation="nearest")
 
 
 if __name__ == "__main__":
