@@ -3,22 +3,42 @@ from numpy.linalg import norm
 
 
 def find_dtwall(ball):
+    wall, dtwall = _find_wall_and_dt_wall(ball)
+    return dtwall
+
+def _find_wall_and_dt_wall(ball):
     x, y, vx, vy, r = ball.x, ball.y, ball.vx, ball.vy, ball.radius
+    dtwall = np.inf
     if vx > 0:
         dtwall_x = (1 - r - x) / vx
+        if dtwall_x < dtwall:
+            wall = (1, None)
     elif vx < 0:
         dtwall_x = (x - r) / abs(vx)
+        if dtwall_x < dtwall:
+            wall = (0, None)
     else:
         dtwall_x = np.inf
+        wall = (None, None)
 
     if vy > 0:
         dtwall_y = (1 - r - y) / vy
+        if dtwall_y < dtwall:
+            wall = (None, 1)
     elif vx < 0:
         dtwall_y = (y - r) / abs(vy)
+        if dtwall_y < dtwall:
+            wall = (None, 0)
     else:
         dtwall_y = np.inf
+        wall = (None, None)
 
-    return min(dtwall_x, dtwall_y)
+
+    dtwall = min (dtwall_x, dtwall_y)
+    return (wall,dtwall)
+
+
+
 
 
 def find_dtcoll(ball_1, ball_2):
