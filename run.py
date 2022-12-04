@@ -147,5 +147,5 @@ def plot_location_heatmap(model_data):
 
 
 if __name__ == "__main__":
-    # run_single_model(radius=0.15, size=1.0, dtstore=0.01, steps=1e7)
-    run_multiple_models(size=1.0, dtstore=0.01, steps=1e7)
+    run_single_model(radius=0.15, size=1.0, dtstore=0.01, steps=1e7)
+    # run_multiple_models(size=1.0, dtstore=0.01, steps=1e7)

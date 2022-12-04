@@ -8,7 +8,10 @@ import logging
 from typing import List
 import copy
 
-logging.basicConfig(level=logging.DEBUG)
+# configure logger
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
 CELL_SIZE = 0.1
 
 
