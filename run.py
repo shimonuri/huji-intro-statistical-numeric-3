@@ -17,9 +17,8 @@ def get_balls(radius=0.1):
 def run_single_model(radius, size, dtstore, steps):
     main_model = model.Model(get_balls(radius), size=size, dtstore=dtstore)
     main_model.run(steps=steps)
-    # set loglevel to info
-    logging.basicConfig(level=logging.INFO)
 
+    logging.getLogger().setLevel(logging.INFO)
     plot_location_heatmap(main_model.data)
     plot_absolute_velocity_distribution(main_model.data)
     plot_x_velocity_distribution(main_model.data)
@@ -33,6 +32,7 @@ def run_multiple_models(size, dtstore, steps):
         radius_model.run(steps=steps)
         radius_to_model[radius] = radius_model
 
+    logging.getLogger().setLevel(logging.INFO)
     plot_first_quarter_probability(radius_to_model, 1)
     plot_xvelocity_probability_to_radius(radius_to_model, 1, separately=False)
     plot_xvelocity_probability_to_radius(radius_to_model, 1, separately=True)
