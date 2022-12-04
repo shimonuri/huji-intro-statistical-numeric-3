@@ -64,7 +64,7 @@ def plot_xvelocity_probability_to_radius(
             plt.show()
 
     if not separately:
-        plt.legend(fontsize=12)
+        plt.legend(fontsize=12, loc="upper right")
         plt.show()
 
 
@@ -147,5 +147,5 @@ def plot_location_heatmap(model_data):
 
 
 if __name__ == "__main__":
-    run_single_model(radius=0.15, size=1.0, dtstore=0.01, steps=1e7)
-    # run_multiple_models(size=1.0, dtstore=0.01, steps=1e7)
+    # run_single_model(radius=0.15, size=1.0, dtstore=0.01, steps=1e7)
+    run_multiple_models(size=1.0, dtstore=0.01, steps=1e7)
