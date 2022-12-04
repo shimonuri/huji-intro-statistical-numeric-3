@@ -68,12 +68,18 @@ class ModelState:
 class ModelData:
     model_states: List[ModelState]
 
-    def add_state(self, state: ModelState):
-        self.model_states.append(state)
-
     @property
     def times(self):
         return [state.time for state in self.model_states]
+
+    @property
+    def velocity_cell_size(self):
+        return (
+            np.sqrt(sum([ball.vabs ** 2 for ball in self.model_states[0].balls])) / 100
+        )
+
+    def add_state(self, state: ModelState):
+        self.model_states.append(state)
 
     def get_x(self, ball_number):
         return [state.balls[ball_number].x for state in self.model_states]
@@ -85,15 +91,50 @@ class ModelData:
         heatmap = np.zeros((int(1 / CELL_SIZE), int(1 / CELL_SIZE)))
         for state in self.model_states:
             heatmap[state.balls[ball_number].cell] += 1
-        return heatmap
 
-    def get_vabs(self, ball_number):
+        return heatmap / sum(sum(heatmap))
+
+    def _get_distribution(self, values):
+        return {value: values.count(value) / len(values) for value in set(values)}
+
+    def get_first_quarter_probability(self, ball_number):
+        return sum(
+            [
+                1
+                for state in self.model_states
+                if state.balls[ball_number].x <= 0.5
+                and state.balls[ball_number].y <= 0.5
+            ]
+        ) / len(self.model_states)
+
+    def get_vabs(self, ball_number, is_distribution=False):
+        if is_distribution:
+            values = [
+                state.balls[ball_number].vabs // self.velocity_cell_size
+                for state in self.model_states
+            ]
+            return self._get_distribution(values)
+
         return [state.balls[ball_number].vabs for state in self.model_states]
 
-    def get_vx(self, ball_number):
+    def get_vx(self, ball_number, is_distribution=False):
+        if is_distribution:
+            values = [
+                state.balls[ball_number].vx // self.velocity_cell_size
+                for state in self.model_states
+            ]
+            return self._get_distribution(values)
+
         return [state.balls[ball_number].vx for state in self.model_states]
 
-    def get_vy(self, ball_number):
+    def get_vy(self, ball_number, is_distribution=False):
+        if is_distribution:
+            values = [
+                state.balls[ball_number].vy // self.velocity_cell_size
+                for state in self.model_states
+            ]
+            return self._get_distribution(values)
+
         return [state.balls[ball_number].vy for state in self.model_states]
 
 
@@ -116,7 +157,7 @@ class Model:
             elif isinstance(collision, WallCollision):
                 collisions.make_wall_collision(collision.ball)
 
-            if step % 1 == 0:
+            if step % (steps // 100) == 0:
                 logging.debug(f"step={step}, {collision}")
 
         return self.data
@@ -152,7 +193,6 @@ class Model:
         return min(collision_events, key=lambda x: x.dt)
 
     def _store_state(self):
-        logging.debug(f"store state at time={self.time}")
         self.data.add_state(ModelState(balls=copy.deepcopy(self.balls), time=self.time))
 
     def __str__(self):
