@@ -15,11 +15,14 @@ def get_balls(radius=0.1):
     ]
 
 
-def run_single_model(radius, size, dtstore, steps, save_to_json=False):
+def run_single_model(radius, size, dtstore, steps, save_to_json=False, is_greedy=False):
     main_model = model.Model(get_balls(radius), size=size, dtstore=dtstore)
     main_model.run(steps=steps)
     if save_to_json:
-        main_model.save_to_json(f"output\model_{radius:.2f}_{steps:.0e}.json")
+        main_model.save_to_json(
+            f"output\model_{radius:.2f}_{steps:.0e}{'.narrow' if not is_greedy else ''}.json",
+            is_narrow=not is_greedy,
+        )
         return
     plot_single_model_data(main_model.data)
 
@@ -34,31 +37,27 @@ def plot_single_model_data(data):
 
 def plot_multiple_models(radius_to_data):
     logging.getLogger().setLevel(logging.INFO)
-    plot_first_quarter_probability(radius_to_data, 1)
-    plot_xvelocity_probability_to_radius(radius_to_data, 1, separately=False)
-    plot_xvelocity_probability_to_radius(radius_to_data, 1, separately=True)
+    plot_first_quarter_probability(radius_to_data)
+    plot_xvelocity_probability_to_radius(radius_to_data, separately=False)
+    plot_xvelocity_probability_to_radius(radius_to_data, separately=True)
 
 
-def plot_xvelocity_probability_to_radius(
-    radius_to_data, ball_number, separately=False
-):
+def plot_xvelocity_probability_to_radius(radius_to_data, separately=False):
     if not separately:
-        plt.title(f"Ball {ball_number + 1} X Velocity Probability by Radius")
+        plt.title(f"Ball 2 X Velocity Probability by Radius")
 
     for radius in radius_to_data:
         plt.xlabel("X Velocity (max abs velocity/100)", fontsize=14)
         plt.ylabel("Probability", fontsize=14)
         if separately:
             plt.title(
-                f"Ball {ball_number + 1} X Velocity Probability Radius={radius:.2f}"
+                f"Ball 2 X Velocity Probability Radius={radius:.2f}"
             )
 
-        distribution = radius_to_data[radius].get_vx(
-            ball_number, is_distribution=True
-        )
+        distribution = radius_to_data[radius].x_velocity_distribution
         plt.plot(
-            [x[0] for x in sorted(distribution.items())],
-            [x[1] for x in sorted(distribution.items())],
+            [float(x[0]) for x in sorted(distribution.items())],
+            [float(x[1]) for x in sorted(distribution.items())],
             label=f"Radius = {radius:.2f}",
         )
         if separately:
@@ -69,14 +68,14 @@ def plot_xvelocity_probability_to_radius(
         plt.show()
 
 
-def plot_first_quarter_probability(radius_to_data, ball_number):
-    plt.title(f"Probability of Ball {ball_number + 1} in First Quarter")
+def plot_first_quarter_probability(radius_to_data):
+    plt.title(f"Probability of Ball 2 in First Quarter")
     plt.xlabel("Radius", fontsize=14)
     plt.ylabel("Probability", fontsize=14)
     plt.plot(
         [x[0] for x in sorted(radius_to_data.items())],
         [
-            x[1].get_first_quarter_probability(ball_number)
+            x[1].first_quarter_probability
             for x in sorted(radius_to_data.items())
         ],
     )
@@ -148,17 +147,20 @@ def plot_location_heatmap(model_data):
 @click.option(
     "--json", type=str, default=None,
 )
+@click.option(
+    "--greedy", default=False, is_flag=True,
+)
 @click.option("--json-dir", type=str, default=None)
-def main(radius,steps, json, json_dir):
+def main(radius, steps, json, json_dir, greedy):
     if steps > 10:
         print("Warning: steps > 10, remember that steps is in log10")
         return
 
     if json_dir is not None:
-        jsons = pathlib.Path(json_dir).glob("*.json")
+        jsons = pathlib.Path(json_dir).glob("*.narrow.json")
         radius_to_data = {}
         for json in jsons:
-            model_data = model.ModelData.from_json_file(json)
+            model_data = model.NarrowModelData.from_json_file(json)
             radius_to_data[model_data.radius] = model_data
 
         plot_multiple_models(radius_to_data)
@@ -168,7 +170,12 @@ def main(radius,steps, json, json_dir):
         plot_single_model_data(model_data)
     else:
         run_single_model(
-            radius=radius, size=1.0, dtstore=0.01, steps=10 ** steps, save_to_json=True
+            radius=radius,
+            size=1.0,
+            dtstore=0.01,
+            steps=10 ** steps,
+            save_to_json=True,
+            is_greedy=greedy,
         )
 
 

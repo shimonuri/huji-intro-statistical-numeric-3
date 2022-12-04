@@ -7,7 +7,7 @@ import json
 
 import collisions
 import logging
-from typing import List
+from typing import List, Dict
 import copy
 
 # configure logger
@@ -160,6 +160,20 @@ class ModelData:
         return [state.balls[ball_number].vy for state in self.model_states]
 
 
+@dataclasses_json.dataclass_json
+@dataclasses.dataclass
+class NarrowModelData:
+    radius: float
+    ball_number: int
+    first_quarter_probability: float
+    x_velocity_distribution: Dict[float, float]
+
+    @classmethod
+    def from_json_file(cls, filename):
+        with open(filename, "rt") as fd:
+            return cls.from_dict(json.load(fd))
+
+
 class Model:
     def __init__(self, balls, size, dtstore):
         self.balls = balls
@@ -184,9 +198,18 @@ class Model:
 
         return self.data
 
-    def save_to_json(self, filename):
+    def save_to_json(self, filename, is_narrow=False):
+        if is_narrow:
+            data = NarrowModelData(
+                radius=self.data.radius,
+                ball_number=2,
+                first_quarter_probability=self.data.get_first_quarter_probability(1),
+                x_velocity_distribution=self.data.get_vx(1, is_distribution=True),
+            )
+        else:
+            data = self.data
         with open(filename, "wt") as fd:
-            json.dump(self.data.to_dict(), fd, indent=4)
+            json.dump(data.to_dict(), fd, indent=4)
 
     def _forward(self, dt):
         time_to_next_store = self.dtstore - self.time % self.dtstore
