@@ -1,8 +1,9 @@
 import numpy as np
-
+import pathlib
 import model
 from matplotlib import pyplot as plt
 import logging
+import click
 
 
 def get_balls(radius=0.1):
@@ -14,37 +15,37 @@ def get_balls(radius=0.1):
     ]
 
 
-def run_single_model(radius, size, dtstore, steps):
+def run_single_model(radius, size, dtstore, steps, save_to_json=False):
     main_model = model.Model(get_balls(radius), size=size, dtstore=dtstore)
     main_model.run(steps=steps)
+    if save_to_json:
+        main_model.save_to_json(f"output\model_{radius:.2f}_{steps:.0e}.json")
+        return
+    plot_single_model_data(main_model.data)
 
+
+def plot_single_model_data(data):
     logging.getLogger().setLevel(logging.INFO)
-    plot_location_heatmap(main_model.data)
-    plot_absolute_velocity_distribution(main_model.data)
-    plot_x_velocity_distribution(main_model.data)
-    plot_y_velocity_distribution(main_model.data)
+    plot_location_heatmap(data)
+    plot_absolute_velocity_distribution(data)
+    plot_x_velocity_distribution(data)
+    plot_y_velocity_distribution(data)
 
 
-def run_multiple_models(size, dtstore, steps):
-    radius_to_model = {}
-    for radius in np.linspace(0.1, 0.23, 14):
-        radius_model = model.Model(get_balls(radius), size=size, dtstore=dtstore)
-        radius_model.run(steps=steps)
-        radius_to_model[radius] = radius_model
-
+def plot_multiple_models(radius_to_data):
     logging.getLogger().setLevel(logging.INFO)
-    plot_first_quarter_probability(radius_to_model, 1)
-    plot_xvelocity_probability_to_radius(radius_to_model, 1, separately=False)
-    plot_xvelocity_probability_to_radius(radius_to_model, 1, separately=True)
+    plot_first_quarter_probability(radius_to_data, 1)
+    plot_xvelocity_probability_to_radius(radius_to_data, 1, separately=False)
+    plot_xvelocity_probability_to_radius(radius_to_data, 1, separately=True)
 
 
 def plot_xvelocity_probability_to_radius(
-    radius_to_model, ball_number, separately=False
+    radius_to_data, ball_number, separately=False
 ):
     if not separately:
         plt.title(f"Ball {ball_number + 1} X Velocity Probability by Radius")
 
-    for radius in radius_to_model:
+    for radius in radius_to_data:
         plt.xlabel("X Velocity (max abs velocity/100)", fontsize=14)
         plt.ylabel("Probability", fontsize=14)
         if separately:
@@ -52,7 +53,7 @@ def plot_xvelocity_probability_to_radius(
                 f"Ball {ball_number + 1} X Velocity Probability Radius={radius:.2f}"
             )
 
-        distribution = radius_to_model[radius].data.get_vx(
+        distribution = radius_to_data[radius].get_vx(
             ball_number, is_distribution=True
         )
         plt.plot(
@@ -68,15 +69,15 @@ def plot_xvelocity_probability_to_radius(
         plt.show()
 
 
-def plot_first_quarter_probability(radius_to_model, ball_number):
+def plot_first_quarter_probability(radius_to_data, ball_number):
     plt.title(f"Probability of Ball {ball_number + 1} in First Quarter")
     plt.xlabel("Radius", fontsize=14)
     plt.ylabel("Probability", fontsize=14)
     plt.plot(
-        [x[0] for x in sorted(radius_to_model.items())],
+        [x[0] for x in sorted(radius_to_data.items())],
         [
-            x[1].data.get_first_quarter_probability(ball_number)
-            for x in sorted(radius_to_model.items())
+            x[1].get_first_quarter_probability(ball_number)
+            for x in sorted(radius_to_data.items())
         ],
     )
     plt.show()
@@ -127,15 +128,6 @@ def plot_absolute_velocity_distribution(model_data):
     plt.show()
 
 
-def plot_locations(main_model):
-    plt.plot(main_model.data.get_x(0), main_model.data.get_y(0), label="ball1")
-    plt.plot(main_model.data.get_x(1), main_model.data.get_y(1), label="ball2")
-    plt.plot(main_model.data.get_x(2), main_model.data.get_y(2), label="ball3")
-    plt.plot(main_model.data.get_x(3), main_model.data.get_y(3), label="ball4")
-    plt.legend()
-    plt.show()
-
-
 def plot_location_heatmap(model_data):
     plt.title("Ball 1 Heat Map")
     plt.xlabel("x", fontsize=14)
@@ -146,6 +138,39 @@ def plot_location_heatmap(model_data):
     plt.show()
 
 
+@click.command()
+@click.argument(
+    "radius", type=float, default=0.15,
+)
+@click.argument(
+    "steps", type=float, default=2,
+)
+@click.option(
+    "--json", type=str, default=None,
+)
+@click.option("--json-dir", type=str, default=None)
+def main(radius,steps, json, json_dir):
+    if steps > 10:
+        print("Warning: steps > 10, remember that steps is in log10")
+        return
+
+    if json_dir is not None:
+        jsons = pathlib.Path(json_dir).glob("*.json")
+        radius_to_data = {}
+        for json in jsons:
+            model_data = model.ModelData.from_json_file(json)
+            radius_to_data[model_data.radius] = model_data
+
+        plot_multiple_models(radius_to_data)
+
+    elif json is not None:
+        model_data = model.ModelData.from_json_file(json)
+        plot_single_model_data(model_data)
+    else:
+        run_single_model(
+            radius=radius, size=1.0, dtstore=0.01, steps=10 ** steps, save_to_json=True
+        )
+
+
 if __name__ == "__main__":
-    run_single_model(radius=0.15, size=1.0, dtstore=0.01, steps=1e7)
-    # run_multiple_models(size=1.0, dtstore=0.01, steps=1e7)
+    main()

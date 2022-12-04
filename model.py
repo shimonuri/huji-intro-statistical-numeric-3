@@ -1,7 +1,9 @@
 import dataclasses
+import dataclasses_json
 import itertools
 
 import numpy as np
+import json
 
 import collisions
 import logging
@@ -15,6 +17,7 @@ logger.setLevel(logging.DEBUG)
 CELL_SIZE = 0.1
 
 
+@dataclasses_json.dataclass_json
 @dataclasses.dataclass
 class Ball:
     x: float
@@ -40,6 +43,7 @@ class Ball:
         return f"Ball(x={self.x}, y={self.y}, vx={self.vx}, vy={self.vy}, radius={self.radius})"
 
 
+@dataclasses_json.dataclass_json
 @dataclasses.dataclass
 class BallsCollision:
     ball_1: Ball
@@ -52,6 +56,7 @@ class BallsCollision:
         )
 
 
+@dataclasses_json.dataclass_json
 @dataclasses.dataclass
 class WallCollision:
     ball: Ball
@@ -61,15 +66,29 @@ class WallCollision:
         return f"WallCollision(ball={self.ball}, dt={self.dt})"
 
 
+@dataclasses_json.dataclass_json
 @dataclasses.dataclass
 class ModelState:
-    balls: list
+    balls: List[Ball]
     time: float
 
 
+@dataclasses_json.dataclass_json
 @dataclasses.dataclass
 class ModelData:
     model_states: List[ModelState]
+
+    @classmethod
+    def from_json_file(cls, filename):
+        with open(filename, "rt") as fd:
+            return cls.from_dict(json.load(fd))
+
+    @property
+    def radius(self):
+        """
+        assumes that all balls have the same radius
+        """
+        return self.model_states[0].balls[0].radius
 
     @property
     def times(self):
@@ -164,6 +183,10 @@ class Model:
                 logging.debug(f"step={step}, {collision}")
 
         return self.data
+
+    def save_to_json(self, filename):
+        with open(filename, "wt") as fd:
+            json.dump(self.data.to_dict(), fd, indent=4)
 
     def _forward(self, dt):
         time_to_next_store = self.dtstore - self.time % self.dtstore
