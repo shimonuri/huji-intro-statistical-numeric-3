@@ -16,12 +16,13 @@ def get_balls(radius=0.1):
 
 
 def run_single_model(radius, size, dtstore, steps, save_to_json=False, is_greedy=False):
-    main_model = model.Model(get_balls(radius), size=size, dtstore=dtstore)
+    main_model = model.Model(
+        get_balls(radius), size=size, dtstore=dtstore, is_narrow=not is_greedy
+    )
     main_model.run(steps=steps)
     if save_to_json:
         main_model.save_to_json(
             f"output\model_{radius:.2f}_{steps:.0e}{'.narrow' if not is_greedy else ''}.json",
-            is_narrow=not is_greedy,
         )
         return
     plot_single_model_data(main_model.data)
@@ -50,9 +51,7 @@ def plot_xvelocity_probability_to_radius(radius_to_data, separately=False):
         plt.xlabel("X Velocity (max abs velocity/100)", fontsize=14)
         plt.ylabel("Probability", fontsize=14)
         if separately:
-            plt.title(
-                f"Ball 2 X Velocity Probability Radius={radius:.2f}"
-            )
+            plt.title(f"Ball 2 X Velocity Probability Radius={radius:.2f}")
 
         distribution = radius_to_data[radius].x_velocity_distribution
         plt.plot(
@@ -74,10 +73,7 @@ def plot_first_quarter_probability(radius_to_data):
     plt.ylabel("Probability", fontsize=14)
     plt.plot(
         [x[0] for x in sorted(radius_to_data.items())],
-        [
-            x[1].first_quarter_probability
-            for x in sorted(radius_to_data.items())
-        ],
+        [x[1].first_quarter_probability for x in sorted(radius_to_data.items())],
     )
     plt.show()
 

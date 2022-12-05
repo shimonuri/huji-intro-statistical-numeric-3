@@ -175,11 +175,12 @@ class NarrowModelData:
 
 
 class Model:
-    def __init__(self, balls, size, dtstore):
+    def __init__(self, balls, size, dtstore, is_narrow=False):
         self.balls = balls
         self.size = size
         self.dtstore = dtstore
         self.time = 0
+        self.is_narrow = is_narrow
         self.data = ModelData(model_states=[])
 
     def run(self, steps=100):
@@ -198,13 +199,14 @@ class Model:
 
         return self.data
 
-    def save_to_json(self, filename, is_narrow=False):
-        if is_narrow:
+    def save_to_json(self, filename):
+        if self.is_narrow:
+            # in this case we have only one ball in are model data
             data = NarrowModelData(
                 radius=self.data.radius,
                 ball_number=2,
-                first_quarter_probability=self.data.get_first_quarter_probability(1),
-                x_velocity_distribution=self.data.get_vx(1, is_distribution=True),
+                first_quarter_probability=self.data.get_first_quarter_probability(0),
+                x_velocity_distribution=self.data.get_vx(0, is_distribution=True),
             )
         else:
             data = self.data
@@ -242,7 +244,10 @@ class Model:
         return min(collision_events, key=lambda x: x.dt)
 
     def _store_state(self):
-        self.data.add_state(ModelState(balls=copy.deepcopy(self.balls), time=self.time))
+        if self.is_narrow:
+            self.data.add_state(ModelState(balls=[copy.deepcopy(self.balls[1])], time=self.time))
+        else:
+            self.data.add_state(ModelState(balls=copy.deepcopy(self.balls), time=self.time))
 
     def __str__(self):
         return f"Model(balls={self.balls}, size={self.size}, dtstore={self.dtstore})"
