@@ -2,9 +2,13 @@ import numpy as np
 import pathlib
 import model
 from matplotlib import pyplot as plt
+import matplotlib
 import logging
 import click
+font = {'family' : 'normal',
+        'size'   : 14}
 
+matplotlib.rc('font', **font)
 
 def get_balls(radius=0.1):
     return [
@@ -49,11 +53,12 @@ def plot_multiple_models(radius_to_data):
 
 def plot_xvelocity_probability_to_radius(radius_to_data, separately=False):
     if not separately:
-        plt.title(f"Ball 2 X Velocity Probability by Radius")
+        plt.title(f"Ball 2 X Velocity Probability by Radius", fontsize=18)
 
     for radius in radius_to_data:
-        plt.xlabel("X Velocity (max abs velocity/100)", fontsize=14)
-        plt.ylabel("Probability", fontsize=14)
+        plt.rcParams.update({"font.size": 16})
+        plt.xlabel("X Velocity (max abs velocity/100)", fontsize=16)
+        plt.ylabel("Probability", fontsize=16)
         if separately:
             plt.title(f"Ball 2 X Velocity Probability Radius={radius:.2f}")
 
@@ -67,14 +72,14 @@ def plot_xvelocity_probability_to_radius(radius_to_data, separately=False):
             plt.show()
 
     if not separately:
-        plt.legend(fontsize=12, loc="upper right")
+        plt.legend(fontsize=14, loc="upper right")
         plt.show()
 
 
 def plot_first_quarter_probability(radius_to_data):
-    plt.title(f"Probability of Ball 2 in First Quarter")
-    plt.xlabel("Radius", fontsize=14)
-    plt.ylabel("Probability", fontsize=14)
+    plt.title(f"Probability of Ball 2 in First Quarter", fontsize=18)
+    plt.xlabel("Radius", fontsize=16)
+    plt.ylabel("Probability", fontsize=16)
     plt.plot(
         [x[0] for x in sorted(radius_to_data.items())],
         [x[1].first_quarter_probability for x in sorted(radius_to_data.items())],
