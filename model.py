@@ -228,19 +228,20 @@ class Model:
             ball.move(dt)
 
     def _find_next_collision(self):
-        collision_events = []
+        min_collision_time = float("inf")
+        collsion_event = None
         for ball_1, ball_2 in itertools.combinations(self.balls, 2):
-            collision_events.append(
-                BallsCollision(
-                    ball_1=ball_1,
-                    ball_2=ball_2,
-                    dt=collisions.find_dtcoll(ball_1, ball_2),
-                )
-            )
+            dtcoll = collisions.find_dtcoll(ball_1, ball_2)
+            if dtcoll < min_collision_time:
+                min_collision_time = dtcoll
+                collsion_event = BallsCollision(ball_1, ball_2, dtcoll)
         for ball in self.balls:
             wall, dtwall = collisions.find_wall_and_dt_wall(ball)
-            collision_events.append(WallCollision(ball=ball, wall=wall, dt=dtwall))
-        return min(collision_events, key=lambda x: x.dt)
+            if dtwall < min_collision_time:
+                min_collision_time = dtwall
+                collsion_event = WallCollision(ball, wall, dtwall)
+
+        return collsion_event
 
     def _store_state(self):
         if self.is_narrow:
