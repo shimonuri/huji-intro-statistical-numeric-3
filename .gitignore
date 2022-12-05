@@ -3,11 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 .idea
-*.json
-.narrow.json
+/output/*.json
+/output/*.narrow.json
 # C extensions
 *.so
-*.json
 
 # Distribution / packaging
 .Python
