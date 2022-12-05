@@ -2,12 +2,7 @@ import numpy as np
 from numpy.linalg import norm
 
 
-def find_dtwall(ball):
-    wall, dtwall = _find_wall_and_dt_wall(ball)
-    return dtwall
-
-
-def _find_wall_and_dt_wall(ball):
+def find_wall_and_dt_wall(ball):
     x, y, vx, vy, r = ball.x, ball.y, ball.vx, ball.vy, ball.radius
     dtwall = np.inf
     if vx > 0:
@@ -65,8 +60,7 @@ def find_dtcoll(ball_1, ball_2):
     return dtcoll
 
 
-def make_wall_collision(ball):
-    wall, dtwall = _find_wall_and_dt_wall(ball)
+def make_wall_collision(ball, wall):
     if wall[0] in [0, 1]:
         ball.vx = -ball.vx
     else:

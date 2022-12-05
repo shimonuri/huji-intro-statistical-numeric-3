@@ -7,7 +7,7 @@ import json
 
 import collisions
 import logging
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import copy
 
 # configure logger
@@ -60,6 +60,7 @@ class BallsCollision:
 @dataclasses.dataclass
 class WallCollision:
     ball: Ball
+    wall: Tuple[int]
     dt: float
 
     def __str__(self):
@@ -192,7 +193,7 @@ class Model:
             if isinstance(collision, BallsCollision):
                 collisions.make_balls_collision(collision.ball_1, collision.ball_2)
             elif isinstance(collision, WallCollision):
-                collisions.make_wall_collision(collision.ball)
+                collisions.make_wall_collision(collision.ball, collision.wall)
 
             if step % (steps // 100) == 0:
                 logging.debug(f"step={step}, {collision}")
@@ -238,16 +239,19 @@ class Model:
                 )
             )
         for ball in self.balls:
-            collision_events.append(
-                WallCollision(ball=ball, dt=collisions.find_dtwall(ball),)
-            )
+            wall, dtwall = collisions.find_wall_and_dt_wall(ball)
+            collision_events.append(WallCollision(ball=ball, wall=wall, dt=dtwall))
         return min(collision_events, key=lambda x: x.dt)
 
     def _store_state(self):
         if self.is_narrow:
-            self.data.add_state(ModelState(balls=[copy.deepcopy(self.balls[1])], time=self.time))
+            self.data.add_state(
+                ModelState(balls=[copy.deepcopy(self.balls[1])], time=self.time)
+            )
         else:
-            self.data.add_state(ModelState(balls=copy.deepcopy(self.balls), time=self.time))
+            self.data.add_state(
+                ModelState(balls=copy.deepcopy(self.balls), time=self.time)
+            )
 
     def __str__(self):
         return f"Model(balls={self.balls}, size={self.size}, dtstore={self.dtstore})"
