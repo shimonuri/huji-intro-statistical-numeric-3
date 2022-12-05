@@ -8,7 +8,6 @@ import json
 import collisions
 import logging
 from typing import List, Dict, Tuple
-import copy
 
 # configure logger
 logger = logging.getLogger()
@@ -246,11 +245,35 @@ class Model:
     def _store_state(self):
         if self.is_narrow:
             self.data.add_state(
-                ModelState(balls=[copy.deepcopy(self.balls[1])], time=self.time)
+                ModelState(
+                    balls=[
+                        Ball(
+                            x=self.balls[1].x,
+                            y=self.balls[1].y,
+                            vx=self.balls[1].vx,
+                            vy=self.balls[1].vy,
+                            radius=self.balls[1].radius,
+                        )
+                    ],
+                    time=self.time,
+                )
             )
         else:
             self.data.add_state(
-                ModelState(balls=copy.deepcopy(self.balls), time=self.time)
+                ModelState(
+                    balls=[
+                        Ball(
+                            x=ball.x,
+                            y=ball.y,
+                            vx=ball.vx,
+                            vy=ball.vy,
+                            radius=ball.radius,
+                            name=ball.name,
+                        )
+                        for ball in self.balls
+                    ],
+                    time=self.time,
+                )
             )
 
     def __str__(self):
