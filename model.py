@@ -248,7 +248,6 @@ class Model:
             if dtwall < min_collision_time:
                 min_collision_time = dtwall
                 collsion_event = WallCollision(ball, wall, dtwall)
-
         return collsion_event
 
     def _store_state(self):
