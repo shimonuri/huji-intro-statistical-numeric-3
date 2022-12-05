@@ -77,6 +77,7 @@ class ModelState:
 @dataclasses.dataclass
 class ModelData:
     model_states: List[ModelState]
+    velocity_cell_size: float
 
     @classmethod
     def from_json_file(cls, filename):
@@ -93,12 +94,6 @@ class ModelData:
     @property
     def times(self):
         return [state.time for state in self.model_states]
-
-    @property
-    def velocity_cell_size(self):
-        return (
-            np.sqrt(sum([ball.vabs ** 2 for ball in self.model_states[0].balls])) / 100
-        )
 
     def add_state(self, state: ModelState):
         self.model_states.append(state)
@@ -175,13 +170,26 @@ class NarrowModelData:
 
 
 class Model:
-    def __init__(self, balls, size, dtstore, is_narrow=False):
+    def __init__(
+        self,
+        balls,
+        size,
+        dtstore,
+        velocity_cell_size=None,
+        ball_index_to_follow=1,
+        is_narrow=False,
+    ):
+        if velocity_cell_size is None:
+            velocity_cell_size = np.sqrt(sum([ball.vabs ** 2 for ball in balls])) / 100
+
         self.balls = balls
         self.size = size
         self.dtstore = dtstore
         self.time = 0
         self.is_narrow = is_narrow
-        self.data = ModelData(model_states=[])
+        self.ball_index_to_follow = ball_index_to_follow
+        self.velocity_cell_size = velocity_cell_size
+        self.data = ModelData(model_states=[], velocity_cell_size=velocity_cell_size)
 
     def run(self, steps=100):
         step = 0
@@ -204,7 +212,7 @@ class Model:
             # in this case we have only one ball in are model data
             data = NarrowModelData(
                 radius=self.data.radius,
-                ball_number=2,
+                ball_number=self.ball_index_to_follow + 1,
                 first_quarter_probability=self.data.get_first_quarter_probability(0),
                 x_velocity_distribution=self.data.get_vx(0, is_distribution=True),
             )
@@ -249,11 +257,11 @@ class Model:
                 ModelState(
                     balls=[
                         Ball(
-                            x=self.balls[1].x,
-                            y=self.balls[1].y,
-                            vx=self.balls[1].vx,
-                            vy=self.balls[1].vy,
-                            radius=self.balls[1].radius,
+                            x=self.balls[self.ball_index_to_follow].x,
+                            y=self.balls[self.ball_index_to_follow].y,
+                            vx=self.balls[self.ball_index_to_follow].vx,
+                            vy=self.balls[self.ball_index_to_follow].vy,
+                            radius=self.balls[self.ball_index_to_follow].radius,
                         )
                     ],
                     time=self.time,

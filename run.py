@@ -17,7 +17,11 @@ def get_balls(radius=0.1):
 
 def run_single_model(radius, size, dtstore, steps, save_to_json=False, is_greedy=False):
     main_model = model.Model(
-        get_balls(radius), size=size, dtstore=dtstore, is_narrow=not is_greedy
+        get_balls(radius),
+        size=size,
+        dtstore=dtstore,
+        is_narrow=not is_greedy,
+        ball_index_to_follow=1,
     )
     main_model.run(steps=steps)
     if save_to_json:
